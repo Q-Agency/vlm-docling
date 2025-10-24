@@ -26,15 +26,17 @@ class DoclingVLMService:
     
     def _create_converter(self) -> DocumentConverter:
         """Create DocumentConverter with GraniteDocling VLM"""
+        # Explicitly use GraniteDocling model with Transformers backend
+        vlm_options = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
+        
         logger.info("=" * 60)
-        logger.info("Configuring GraniteDocling VLM...")
-        logger.info("Model: ibm-granite/granite-docling-258M")
-        logger.info("Backend: transformers")
+        logger.info("Configuring VLM...")
+        logger.info(f"Model: {vlm_options.model_id}")
+        logger.info(f"Backend: {vlm_options.backend}")
         logger.info("=" * 60)
         
-        # Explicitly use GraniteDocling model with Transformers backend
         pipeline_options = VlmPipelineOptions(
-            vlm_options=vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
+            vlm_options=vlm_options
         )
         
         converter = DocumentConverter(
@@ -46,7 +48,7 @@ class DoclingVLMService:
             }
         )
         
-        logger.info("✓ GraniteDocling VLM initialized")
+        logger.info(f"✓ VLM initialized ({vlm_options.model_id} via {vlm_options.backend})")
         logger.info("=" * 60)
         return converter
     
