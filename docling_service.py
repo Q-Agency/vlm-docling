@@ -35,7 +35,7 @@ class DoclingVLMService:
         
         # Optimize vLLM for H200 GPU - increase memory utilization
         model.extra_generation_config.update({
-            "gpu_memory_utilization": 0.7,  # Use 70% of H200 memory (vs default 30%)
+            "gpu_memory_utilization": 0.1,  # Use 70% of H200 memory (vs default 30%)
         })
         
         # Configure GPU acceleration for H200
