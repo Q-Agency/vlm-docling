@@ -2,7 +2,7 @@
 
 ## Summary
 
-Fixed invalid parameters and simplified the VLM pipeline configuration to create a minimal working implementation based on the official Docling codebase analysis.
+Fixed invalid parameters and simplified the VLM pipeline configuration to create a minimal working implementation based on the official Docling codebase analysis. Added comprehensive model verification to confirm Granite Docling VLM is being used.
 
 ## Files Modified
 
@@ -165,4 +165,43 @@ converter = DocumentConverter(
 ```
 
 This is the minimal working configuration for H200 CUDA acceleration.
+
+## Latest Update: Enhanced Model Verification
+
+### New Features Added:
+
+1. **`_pipeline_verified` Flag** - Tracks whether model verification has been performed
+2. **`_verify_model_loaded()` Method** - Comprehensive model verification that logs:
+   - Pipeline type (VlmPipeline)
+   - VLM wrapper class (HuggingFaceTransformersVlmModel)
+   - Model repository confirmation (ibm-granite/granite-docling-258M)
+   - Inference framework (TRANSFORMERS)
+   - Response format (DOCTAGS - unique to Granite Docling)
+   - Model class name
+   - Device location (cuda:0)
+   - Model parameter count (258M parameters)
+   - Explicit confirmation that Granite Docling VLM is being used
+
+3. **Enhanced Configuration Logging** - Added Max Tokens and Temperature to startup logs
+
+### What You'll See:
+
+After the first PDF conversion, you'll see comprehensive verification output:
+
+```
+============================================================
+🔍 MODEL VERIFICATION:
+  Pipeline Type: VlmPipeline
+  VLM Wrapper: HuggingFaceTransformersVlmModel
+  ✅ Model Repository: ibm-granite/granite-docling-258M
+  ✅ Inference Framework: InferenceFramework.TRANSFORMERS
+  ✅ Response Format: ResponseFormat.DOCTAGS
+  ✅ CONFIRMED: Using Granite Docling VLM
+  ✅ Model Class: Idefics3ForConditionalGeneration
+  ✅ Running on Device: cuda:0
+  ✅ Model Parameters: 258,000,000 (258.0M)
+============================================================
+```
+
+This verification runs only once (on first conversion) to avoid log spam.
 
