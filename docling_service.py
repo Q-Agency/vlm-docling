@@ -27,17 +27,22 @@ class DoclingVLMService:
         """
         Create a minimal working DocumentConverter with VLM pipeline.
         
-        Uses GraniteDocling model for Linux/CUDA (TRANSFORMERS backend).
+        Uses GraniteDocling model with vLLM backend for 2-4x faster inference.
         For Mac, change to vlm_model_specs.GRANITEDOCLING_MLX.
         """
-        # Select model based on platform
-        model = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
+        # Select model based on platform - using vLLM for 2-4x faster inference
+        model = vlm_model_specs.GRANITEDOCLING_VLLM.model_copy()
+        
+        # Optimize vLLM for H200 GPU - increase memory utilization
+        model.extra_generation_config.update({
+            "gpu_memory_utilization": 0.7,  # Use 70% of H200 memory (vs default 30%)
+        })
         
         # Configure GPU acceleration for H200
         accelerator_options = AcceleratorOptions(
             device="cuda",
             num_threads=32,
-            cuda_use_flash_attention2=False  # Set to True for better performance if supported
+            cuda_use_flash_attention2=False  # Not needed with vLLM
         )
         
         # Log VLM configuration
