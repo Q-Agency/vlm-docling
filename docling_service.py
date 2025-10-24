@@ -35,8 +35,8 @@ class DoclingVLMService:
         # Configure GPU acceleration for H200
         accelerator_options = AcceleratorOptions(
             device="cuda",
-            num_threads=4,
-            cuda_use_flash_attention2=False  # Set to True for better performance if supported
+            num_threads=8,
+            cuda_use_flash_attention2=True  # Set to True for better performance if supported
         )
         
         # Log VLM configuration
