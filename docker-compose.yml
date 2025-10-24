@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  q-structurize:
+  vlm-docling:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: q-structurize
+    container_name: vlm-docling
     ports:
       - "8879:8000"
     environment:

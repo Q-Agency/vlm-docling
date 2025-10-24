@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---- config ----
-SERVICE_NAME="${SERVICE_NAME:-q-structurize}"
+SERVICE_NAME="${SERVICE_NAME:-vlm-docling}"
 
 # choose compose command (prefers v2 plugin)
 if command -v docker &>/dev/null && docker compose version &>/dev/null; then

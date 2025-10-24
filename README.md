@@ -48,7 +48,7 @@ docker compose up -d
 ./refresh.sh
 
 # View logs
-docker compose logs -f q-structurize
+docker compose logs -f vlm-docling
 ```
 
 ### API Endpoints
