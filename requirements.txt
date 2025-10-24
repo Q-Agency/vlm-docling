@@ -3,19 +3,14 @@ uvicorn[standard]==0.31.0
 pydantic==2.9.2
 python-multipart==0.0.12
 
-# Docling and VLM dependencies
-docling==2.58.0
-docling-ibm-models>=2.0.5
+# Docling with VLM support (includes transformers, accelerate, IBM models, etc.)
+docling[vlm]==2.58.0
 
-# PyTorch with CUDA 12.6 support
+# PyTorch with CUDA 12.6 support (installed separately for specific CUDA version)
 torch==2.5.1
 torchvision==0.20.1
 
-# Transformers and acceleration
-transformers>=4.45.0
-accelerate>=0.34.0
-
-# Additional dependencies for VLM
+# Additional dependencies
 pillow>=10.0.0
 numpy>=1.24.0
 
