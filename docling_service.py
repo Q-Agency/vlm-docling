@@ -9,7 +9,7 @@ from typing import Dict, Union
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel import vlm_model_specs
-from docling.datamodel.pipeline_options import VlmPipelineOptions, PdfPipelineOptions
+from docling.datamodel.pipeline_options import VlmPipelineOptions
 from docling.pipeline.vlm_pipeline import VlmPipeline
 
 logger = logging.getLogger(__name__)
