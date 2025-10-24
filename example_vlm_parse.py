@@ -15,8 +15,7 @@ from pathlib import Path
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, VlmPipelineOptions
-from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
+from docling.pipeline.vlm_pipeline import VlmPipeline
 
 # Configure logging
 logging.basicConfig(
@@ -37,26 +36,17 @@ def parse_pdf_with_vlm(pdf_source: str, output_file: str = None):
     logger.info(f"Parsing PDF: {pdf_source}")
     
     try:
-        # Configure VLM pipeline
-        vlm_options = VlmPipelineOptions()
-        
-        pipeline_options = PdfPipelineOptions(
-            vlm_options=vlm_options
-        )
-        pipeline_options.do_table_structure = True
-        pipeline_options.do_ocr = True
-        
-        # Initialize converter with VLM backend
+        # Initialize converter with explicit VLM pipeline
+        # Uses GraniteDocling model by default with transformers framework
         converter = DocumentConverter(
             format_options={
                 InputFormat.PDF: PdfFormatOption(
-                    pipeline_options=pipeline_options,
-                    backend=DoclingParseDocumentBackend
-                )
+                    pipeline_cls=VlmPipeline,
+                ),
             }
         )
         
-        logger.info("DocumentConverter initialized with VLM pipeline")
+        logger.info("DocumentConverter initialized with VlmPipeline (GraniteDocling)")
         
         # Convert the document
         logger.info("Starting conversion...")

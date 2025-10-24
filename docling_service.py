@@ -4,15 +4,13 @@ Handles all document parsing logic with CUDA acceleration
 """
 
 import logging
-import os
 from pathlib import Path
 from typing import Dict, Optional, Union
 import torch
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, VlmPipelineOptions
-from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
+from docling.pipeline.vlm_pipeline import VlmPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -51,32 +49,22 @@ class DoclingVLMService:
             logger.warning("CUDA not available, using CPU")
     
     def _initialize_converter(self):
-        """Initialize DocumentConverter with VLM pipeline"""
+        """Initialize DocumentConverter with explicit VLM pipeline"""
         try:
-            # Configure VLM pipeline options
-            vlm_options = VlmPipelineOptions()
-            
-            # Configure PDF pipeline with VLM
-            pipeline_options = PdfPipelineOptions(
-                vlm_options=vlm_options
-            )
-            pipeline_options.do_table_structure = True
-            pipeline_options.do_ocr = True
-            
-            # Initialize DocumentConverter with VLM backend
+            # Initialize DocumentConverter with explicit VLM pipeline class
+            # Uses GraniteDocling model by default with transformers framework
             self.converter = DocumentConverter(
                 format_options={
                     InputFormat.PDF: PdfFormatOption(
-                        pipeline_options=pipeline_options,
-                        backend=DoclingParseDocumentBackend
-                    )
+                        pipeline_cls=VlmPipeline,
+                    ),
                 }
             )
             
-            logger.info("DocumentConverter initialized with VLM pipeline")
+            logger.info("DocumentConverter initialized with VlmPipeline (GraniteDocling)")
             
         except Exception as e:
-            logger.error(f"Failed to initialize converter: {str(e)}")
+            logger.error(f"Failed to initialize VLM converter: {str(e)}")
             raise
     
     def parse_pdf(self, file_path: Union[str, Path]) -> Dict:
