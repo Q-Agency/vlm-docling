@@ -16,4 +16,6 @@ venv/
 *.md
 .DS_Store
 *.sh
+example_vlm_parse.py
+.plan.md
 
