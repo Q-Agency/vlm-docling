@@ -8,8 +8,7 @@ from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.vlm_pipeline import VlmPipeline
 
-# Updated imports
-from docling.datamodel.pipeline_options_vlm_model import InlineVlmOptions, ResponseFormat, InferenceFramework
+# VLM Pipeline imports
 from docling.datamodel.pipeline_options import VlmPipelineOptions, AcceleratorOptions
 from docling.datamodel import vlm_model_specs
 
@@ -24,37 +23,9 @@ class DoclingVLMService:
         logger.info("Docling VLM Service ready")
 
     def _create_converter(self) -> DocumentConverter:
-        # Debug: Inspect available InlineVlmOptions attributes
-        logger.info("=" * 60)
-        logger.info("DEBUG: Inspecting InlineVlmOptions available fields...")
-        vlm_options_fields = [attr for attr in dir(InlineVlmOptions) if not attr.startswith('_')]
-        logger.info(f"Available InlineVlmOptions attributes: {vlm_options_fields}")
-        
-        # Check vlm_model_specs for additional attributes
-        logger.info(f"GRANITEDOCLING_TRANSFORMERS type: {type(vlm_model_specs.GRANITEDOCLING_TRANSFORMERS)}")
-        granite_attrs = [attr for attr in dir(vlm_model_specs.GRANITEDOCLING_TRANSFORMERS) if not attr.startswith('_')]
-        logger.info(f"GRANITEDOCLING_TRANSFORMERS attributes: {granite_attrs}")
-        logger.info("=" * 60)
-        
-        # Choose the GraniteDocling model explicitly
-        vlm_options = InlineVlmOptions(
-            repo_id = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS.repo_id,
-            response_format = ResponseFormat.DOCTAGS,
-            inference_framework = InferenceFramework.TRANSFORMERS,
-            prompt = "Convert this page to DocTags markup.",
-            scale = 2.0,
-            temperature = 0.0,
-        )
-        
-        # Debug: Show all fields of the created vlm_options instance
-        logger.info("DEBUG: Inspecting created vlm_options instance...")
-        for attr in dir(vlm_options):
-            if not attr.startswith('_') and not callable(getattr(vlm_options, attr)):
-                try:
-                    value = getattr(vlm_options, attr)
-                    logger.info(f"  vlm_options.{attr} = {value}")
-                except Exception:
-                    pass
+        # Use GraniteDocling model for Linux/CUDA (TRANSFORMERS backend)
+        # For Mac, use GRANITEDOCLING_MLX instead
+        model = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
         
         # Configure GPU acceleration for H200
         accelerator_options = AcceleratorOptions(
@@ -65,27 +36,26 @@ class DoclingVLMService:
         # Log VLM configuration
         logger.info("=" * 60)
         logger.info("Configuring VLM Pipeline...")
-        logger.info(f"Model: {vlm_options.repo_id}")
-        logger.info(f"Inference Framework: {vlm_options.inference_framework.value}")
-        logger.info(f"Response Format: {vlm_options.response_format.value}")
-        logger.info(f"Scale: {vlm_options.scale}")
-        logger.info(f"Temperature: {vlm_options.temperature}")
-        prompt_display = vlm_options.prompt[:50] + "..." if len(vlm_options.prompt) > 50 else vlm_options.prompt
-        logger.info(f"Prompt: {prompt_display}")
+        logger.info(f"Model: {model.repo_id}")
+        logger.info(f"Backend: {model.backend}")
         logger.info(f"Accelerator: {accelerator_options.device}")
         logger.info("=" * 60)
         
-        # Create pipeline options object (not dict!)
-        pipeline_options = VlmPipelineOptions(
-            vlm_options=vlm_options,
-            accelerator_options=accelerator_options
+        # Create VLM pipeline options - pass model spec directly
+        vlm_pipeline_options = VlmPipelineOptions(
+            vlm_options=model,
+            accelerator_options=accelerator_options,
+            generate_page_images=True,
+            generate_picture_images=False,
+            images_scale=2.0,
+            do_picture_description=True,
         )
 
         converter = DocumentConverter(
             format_options = {
                 InputFormat.PDF: PdfFormatOption(
                     pipeline_cls = VlmPipeline,
-                    pipeline_options = pipeline_options
+                    pipeline_options = vlm_pipeline_options
                 )
             }
         )
