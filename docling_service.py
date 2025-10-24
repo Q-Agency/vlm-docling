@@ -1,7 +1,3 @@
-"""
-Docling VLM Service - PDF parsing using GraniteDocling VLM
-"""
-
 import logging
 from pathlib import Path
 from typing import Union, Dict
@@ -10,15 +6,14 @@ from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.vlm_pipeline import VlmPipeline
 
-# Correct imports for model options
-from docling.datamodel.pipeline_options_vlm_model import InlineVlmOptions
+# Updated imports
+from docling.datamodel.pipeline_options_vlm_model import InlineVlmOptions, ResponseFormat, InferenceFramework
 from docling.datamodel import vlm_model_specs
 
 logger = logging.getLogger(__name__)
 
-
 class DoclingVLMService:
-    """Basic VLM service for parsing PDFs using Docling's VLM pipeline."""
+    """Basic VLM service for parsing PDFs using VLM pipeline."""
     
     def __init__(self):
         logger.info("Initializing Docling VLM Service...")
@@ -28,18 +23,20 @@ class DoclingVLMService:
     def _create_converter(self) -> DocumentConverter:
         # Choose the GraniteDocling model explicitly
         vlm_options = InlineVlmOptions(
-            repo_id=vlm_model_specs.GRANITEDOCLING_TRANSFORMERS.repo_id,
-            # you can add more parameters here if needed e.g., scale, temperature
+            repo_id = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS.repo_id,
+            response_format = ResponseFormat.DOCTAGS,
+            inference_framework = InferenceFramework.TRANSFORMERS,
+            prompt = "Convert this page to DocTags markup.",
+            scale = 2.0,
+            temperature = 0.0,
         )
         logger.info(f"Using VLM model repo_id: {vlm_options.repo_id}")
-        
+
         converter = DocumentConverter(
-            format_options={
+            format_options = {
                 InputFormat.PDF: PdfFormatOption(
-                    pipeline_cls=VlmPipeline,
-                    pipeline_options={
-                        "vlm_options": vlm_options
-                    }
+                    pipeline_cls = VlmPipeline,
+                    pipeline_options = {"vlm_options": vlm_options}
                 )
             }
         )
