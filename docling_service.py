@@ -33,7 +33,7 @@ class DoclingVLMService:
         logger.info("=" * 60)
         
         # Explicitly use GraniteDocling model with Transformers backend
-        pipeline_options = PdfPipelineOptions(
+        pipeline_options = VlmPipelineOptions(
             vlm_options=vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
         )
         
