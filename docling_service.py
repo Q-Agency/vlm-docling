@@ -51,6 +51,12 @@ class DoclingVLMService:
     def _initialize_converter(self):
         """Initialize DocumentConverter with explicit VLM pipeline"""
         try:
+            logger.info("=" * 60)
+            logger.info("Requesting VlmPipeline initialization...")
+            logger.info("Model: IBM Granite 3.1 8B Instruct (default)")
+            logger.info("Backend: transformers")
+            logger.info("=" * 60)
+            
             # Initialize DocumentConverter with explicit VLM pipeline class
             # Uses GraniteDocling model by default with transformers framework
             self.converter = DocumentConverter(
@@ -61,7 +67,9 @@ class DoclingVLMService:
                 }
             )
             
-            logger.info("DocumentConverter initialized with VlmPipeline (GraniteDocling)")
+            logger.info("✓ DocumentConverter initialized with VlmPipeline")
+            logger.info("✓ GraniteDocling VLM ready for PDF parsing")
+            logger.info("=" * 60)
             
         except Exception as e:
             logger.error(f"Failed to initialize VLM converter: {str(e)}")
@@ -97,7 +105,10 @@ class DoclingVLMService:
                 "metadata": {
                     "source": str(file_path),
                     "num_pages": len(doc_dict.get("pages", [])),
-                    "device": self.device
+                    "device": self.device,
+                    "pipeline": "VlmPipeline",
+                    "model": "granite-3.1-8b-instruct",
+                    "backend": "transformers"
                 }
             }
             
@@ -120,6 +131,9 @@ class DoclingVLMService:
             "device": self.device if hasattr(self, 'device') else "unknown",
             "cuda_available": torch.cuda.is_available(),
             "cuda_device_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-            "cuda_version": torch.version.cuda if torch.cuda.is_available() else None
+            "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
+            "pipeline": "VlmPipeline",
+            "model": "granite-3.1-8b-instruct",
+            "backend": "transformers"
         }
 

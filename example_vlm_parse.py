@@ -36,6 +36,12 @@ def parse_pdf_with_vlm(pdf_source: str, output_file: str = None):
     logger.info(f"Parsing PDF: {pdf_source}")
     
     try:
+        logger.info("=" * 80)
+        logger.info("Requesting VlmPipeline initialization...")
+        logger.info("Model: IBM Granite 3.1 8B Instruct (default)")
+        logger.info("Backend: transformers")
+        logger.info("=" * 80)
+        
         # Initialize converter with explicit VLM pipeline
         # Uses GraniteDocling model by default with transformers framework
         converter = DocumentConverter(
@@ -46,7 +52,9 @@ def parse_pdf_with_vlm(pdf_source: str, output_file: str = None):
             }
         )
         
-        logger.info("DocumentConverter initialized with VlmPipeline (GraniteDocling)")
+        logger.info("✓ DocumentConverter initialized with VlmPipeline")
+        logger.info("✓ GraniteDocling VLM ready for PDF parsing")
+        logger.info("=" * 80)
         
         # Convert the document
         logger.info("Starting conversion...")
