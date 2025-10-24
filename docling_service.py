@@ -8,6 +8,7 @@ from docling.pipeline.vlm_pipeline import VlmPipeline
 
 # Updated imports
 from docling.datamodel.pipeline_options_vlm_model import InlineVlmOptions, ResponseFormat, InferenceFramework
+from docling.datamodel.pipeline_options import VlmPipelineOptions, AcceleratorOptions
 from docling.datamodel import vlm_model_specs
 
 logger = logging.getLogger(__name__)
@@ -30,17 +31,42 @@ class DoclingVLMService:
             scale = 2.0,
             temperature = 0.0,
         )
-        logger.info(f"Using VLM model repo_id: {vlm_options.repo_id}")
+        
+        # Configure GPU acceleration for H200
+        accelerator_options = AcceleratorOptions(
+            num_threads=4,
+            device="cuda"
+        )
+        
+        # Log VLM configuration
+        logger.info("=" * 60)
+        logger.info("Configuring VLM Pipeline...")
+        logger.info(f"Model: {vlm_options.repo_id}")
+        logger.info(f"Inference Framework: {vlm_options.inference_framework.value}")
+        logger.info(f"Response Format: {vlm_options.response_format.value}")
+        logger.info(f"Scale: {vlm_options.scale}")
+        logger.info(f"Temperature: {vlm_options.temperature}")
+        prompt_display = vlm_options.prompt[:50] + "..." if len(vlm_options.prompt) > 50 else vlm_options.prompt
+        logger.info(f"Prompt: {prompt_display}")
+        logger.info(f"Accelerator: {accelerator_options.device}")
+        logger.info("=" * 60)
+        
+        # Create pipeline options object (not dict!)
+        pipeline_options = VlmPipelineOptions(
+            vlm_options=vlm_options,
+            accelerator_options=accelerator_options
+        )
 
         converter = DocumentConverter(
             format_options = {
                 InputFormat.PDF: PdfFormatOption(
                     pipeline_cls = VlmPipeline,
-                    pipeline_options = {"vlm_options": vlm_options}
+                    pipeline_options = pipeline_options
                 )
             }
         )
-        logger.info("VlmPipeline initialized")
+        logger.info("✓ VLM Pipeline initialized successfully")
+        logger.info("=" * 60)
         return converter
 
     def parse_pdf(self, file_path: Union[str, Path]) -> Dict:
