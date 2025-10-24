@@ -81,6 +81,24 @@ class DoclingVLMService:
         logger.info(f"Parsing PDF: {file_path}")
         try:
             result = self.converter.convert(str(file_path))
+            
+            # Debug: Log VLM model type after pipeline initialization
+            try:
+                initialized_pipelines = self.converter._get_initialized_pipelines()
+                if initialized_pipelines:
+                    for cache_key, pipeline in initialized_pipelines.items():
+                        logger.info(f"Pipeline class: {type(pipeline).__name__}")
+                        if hasattr(pipeline, 'build_pipe') and pipeline.build_pipe:
+                            vlm_wrapper = pipeline.build_pipe[0]
+                            logger.info(f"VLM wrapper class: {type(vlm_wrapper).__name__}")
+                            if hasattr(vlm_wrapper, 'vlm_model'):
+                                model = vlm_wrapper.vlm_model
+                                logger.info(f"Model class loaded: {type(model).__name__}")
+                                if type(model).__name__ == 'Idefics3Model':
+                                    logger.warning("⚠️  ISSUE IDENTIFIED: Model is Idefics3Model instead of expected model!")
+            except Exception as debug_err:
+                logger.debug(f"Debug inspection failed: {debug_err}")
+            
             doc_dict = result.document.export_to_dict()
             logger.info(f"Successfully parsed: {file_path}")
             return {"success": True, "document": doc_dict}
