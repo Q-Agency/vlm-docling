@@ -2,6 +2,8 @@ import logging
 from pathlib import Path
 from typing import Union, Dict
 
+import torch
+
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.pipeline.vlm_pipeline import VlmPipeline
@@ -65,6 +67,12 @@ class DoclingVLMService:
                 )
             }
         )
+        
+        # Debug: Print converter type
+        print(f"DEBUG: Converter type: {type(converter)}")
+        # Note: Pipeline and VLM model types will be visible during first conversion
+        # Inside the pipeline: print(type(self.vlm_model))
+        
         logger.info("✓ VLM Pipeline initialized successfully")
         logger.info("=" * 60)
         return converter
