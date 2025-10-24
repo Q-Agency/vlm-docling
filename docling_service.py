@@ -24,6 +24,18 @@ class DoclingVLMService:
         logger.info("Docling VLM Service ready")
 
     def _create_converter(self) -> DocumentConverter:
+        # Debug: Inspect available InlineVlmOptions attributes
+        logger.info("=" * 60)
+        logger.info("DEBUG: Inspecting InlineVlmOptions available fields...")
+        vlm_options_fields = [attr for attr in dir(InlineVlmOptions) if not attr.startswith('_')]
+        logger.info(f"Available InlineVlmOptions attributes: {vlm_options_fields}")
+        
+        # Check vlm_model_specs for additional attributes
+        logger.info(f"GRANITEDOCLING_TRANSFORMERS type: {type(vlm_model_specs.GRANITEDOCLING_TRANSFORMERS)}")
+        granite_attrs = [attr for attr in dir(vlm_model_specs.GRANITEDOCLING_TRANSFORMERS) if not attr.startswith('_')]
+        logger.info(f"GRANITEDOCLING_TRANSFORMERS attributes: {granite_attrs}")
+        logger.info("=" * 60)
+        
         # Choose the GraniteDocling model explicitly
         vlm_options = InlineVlmOptions(
             repo_id = vlm_model_specs.GRANITEDOCLING_TRANSFORMERS.repo_id,
@@ -33,6 +45,16 @@ class DoclingVLMService:
             scale = 2.0,
             temperature = 0.0,
         )
+        
+        # Debug: Show all fields of the created vlm_options instance
+        logger.info("DEBUG: Inspecting created vlm_options instance...")
+        for attr in dir(vlm_options):
+            if not attr.startswith('_') and not callable(getattr(vlm_options, attr)):
+                try:
+                    value = getattr(vlm_options, attr)
+                    logger.info(f"  vlm_options.{attr} = {value}")
+                except Exception:
+                    pass
         
         # Configure GPU acceleration for H200
         accelerator_options = AcceleratorOptions(
