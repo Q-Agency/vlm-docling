@@ -78,11 +78,50 @@ docker-compose.yml   # GPU configuration
 requirements.txt     # Just docling[vlm] + FastAPI
 ```
 
+## Development & Testing
+
+### Running Tests
+
+Test the minimal VLM implementation:
+
+```bash
+# Test with the service class
+python test_minimal_vlm.py
+
+# Or test individual examples in the script
+```
+
+### Code Analysis
+
+See `ANALYSIS.md` for detailed analysis of:
+- Proper VLM configuration structure
+- Invalid parameters that were removed
+- Minimal working implementation options
+- Best practices for Granite Docling VLM
+
+### Key Configuration Points
+
+**Correct VLmPipelineOptions parameters:**
+- `vlm_options`: Model specification (default: GRANITEDOCLING_TRANSFORMERS)
+- `accelerator_options`: Device and threading configuration
+- `generate_page_images`: Whether to generate page images (default: True)
+
+**AcceleratorOptions for H200:**
+```python
+AcceleratorOptions(
+    device="cuda",
+    num_threads=4,
+    cuda_use_flash_attention2=False  # or True for better performance
+)
+```
+
 ## Notes
 
 - Models are cached in Docker volume `huggingface-cache`
-- First run downloads VLM models (may take time)
+- First run downloads VLM models (~500MB for Granite Docling 258M)
 - VLM processing is slower but more accurate than standard pipelines
+- Model scale (2.0) is pre-configured in GRANITEDOCLING_TRANSFORMERS spec
+- The implementation uses minimal required parameters (most have good defaults)
 
 ## View Logs
 
@@ -94,3 +133,5 @@ docker compose logs -f vlm-docling
 
 - [Docling Documentation](https://docling-project.github.io/docling/)
 - [Docling GitHub](https://github.com/docling-project/docling)
+- [Granite Docling Model](https://huggingface.co/ibm-granite/granite-docling-258M)
+- Local reference: `docling-reference/` (for development only, not tracked in git)
