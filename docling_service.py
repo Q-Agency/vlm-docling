@@ -1,5 +1,5 @@
 """
-Docling VLM Service - Basic PDF parsing using Docling VLM pipeline
+Docling VLM Service - PDF parsing using GraniteDocling VLM
 """
 
 import logging
@@ -8,31 +8,46 @@ from typing import Dict, Union
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
+from docling.datamodel import vlm_model_specs
+from docling.datamodel.pipeline_options import VlmPipelineOptions, PdfPipelineOptions
 from docling.pipeline.vlm_pipeline import VlmPipeline
 
 logger = logging.getLogger(__name__)
 
 
 class DoclingVLMService:
-    """Basic VLM service for parsing PDFs"""
+    """VLM service using GraniteDocling model for PDF parsing"""
     
     def __init__(self):
-        """Initialize the VLM service"""
+        """Initialize the VLM service with GraniteDocling"""
         logger.info("Initializing Docling VLM Service...")
         self.converter = self._create_converter()
-        logger.info("Docling VLM Service ready")
+        logger.info("GraniteDocling VLM Service ready")
     
     def _create_converter(self) -> DocumentConverter:
-        """Create DocumentConverter with VLM pipeline"""
-        # Most basic VLM pipeline setup
+        """Create DocumentConverter with GraniteDocling VLM"""
+        logger.info("=" * 60)
+        logger.info("Configuring GraniteDocling VLM...")
+        logger.info("Model: ibm-granite/granite-docling-258M")
+        logger.info("Backend: transformers")
+        logger.info("=" * 60)
+        
+        # Explicitly use GraniteDocling model with Transformers backend
+        pipeline_options = PdfPipelineOptions(
+            vlm_options=vlm_model_specs.GRANITEDOCLING_TRANSFORMERS
+        )
+        
         converter = DocumentConverter(
             format_options={
                 InputFormat.PDF: PdfFormatOption(
                     pipeline_cls=VlmPipeline,
+                    pipeline_options=pipeline_options,
                 ),
             }
         )
-        logger.info("VlmPipeline initialized")
+        
+        logger.info("✓ GraniteDocling VLM initialized")
+        logger.info("=" * 60)
         return converter
     
     def parse_pdf(self, file_path: Union[str, Path]) -> Dict:
