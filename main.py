@@ -1,11 +1,8 @@
 import logging
 import tempfile
 from pathlib import Path
-from typing import Dict
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
-
 from docling_service import DoclingVLMService
 
 # Configure logging
@@ -16,130 +13,71 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="VLM Docling API",
-    description="PDF parsing using GraniteDocling VLM with CUDA acceleration",
+    title="Docling VLM API",
+    description="Basic PDF parsing with Docling VLM pipeline",
     version="1.0.0"
 )
 
-# Initialize the Docling VLM service (singleton)
+# Global service instance
 docling_service = None
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize services on startup"""
+    """Initialize VLM service on startup"""
     global docling_service
-    try:
-        logger.info("Starting up VLM Docling API...")
-        docling_service = DoclingVLMService()
-        logger.info("VLM Docling service initialized")
-    except Exception as e:
-        logger.error(f"Failed to initialize VLM service: {str(e)}")
-        raise
+    docling_service = DoclingVLMService()
 
 
 @app.get("/")
 async def root():
-    """Root endpoint - Hello World"""
-    return {"message": "Hello World", "service": "VLM Docling API"}
+    """Root endpoint"""
+    return {"message": "Docling VLM API", "status": "running"}
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    if docling_service and docling_service.is_ready():
-        return JSONResponse(
-            status_code=200,
-            content={"status": "healthy", "service": "vlm-docling", "vlm_ready": True}
-        )
-    return JSONResponse(
-        status_code=503,
-        content={"status": "unhealthy", "service": "vlm-docling", "vlm_ready": False}
-    )
-
-
-@app.get("/api/hello/{name}")
-async def hello_name(name: str):
-    """Personalized greeting"""
-    return {"message": f"Hello, {name}!"}
-
-
-@app.get("/api/parse-pdf/status")
-async def parse_status() -> Dict:
-    """
-    Check if the PDF parsing service is ready
-    Returns service status and GPU information
-    """
-    if not docling_service:
-        raise HTTPException(status_code=503, detail="Service not initialized")
-    
-    return docling_service.get_status()
+    """Health check"""
+    return {"status": "healthy" if docling_service else "initializing"}
 
 
 @app.post("/api/parse-pdf")
-async def parse_pdf(file: UploadFile = File(...)) -> Dict:
+async def parse_pdf(file: UploadFile = File(...)):
     """
-    Parse a PDF file using GraniteDocling VLM
+    Parse a PDF file using VLM pipeline
     
-    Args:
-        file: PDF file to parse
-        
-    Returns:
-        JSON structure containing the parsed document
+    Upload a PDF and get the parsed document structure
     """
     if not docling_service:
-        raise HTTPException(status_code=503, detail="Service not initialized")
+        raise HTTPException(status_code=503, detail="Service not ready")
     
-    if not docling_service.is_ready():
-        raise HTTPException(status_code=503, detail="VLM service not ready")
-    
-    # Validate file type
     if not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+        raise HTTPException(status_code=400, detail="Only PDF files supported")
     
-    # Create temporary file to store upload
-    temp_file = None
+    # Save uploaded file temporarily
+    temp_path = None
     try:
-        # Read uploaded file
         contents = await file.read()
         
-        # Save to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
             temp_file.write(contents)
             temp_path = temp_file.name
         
-        logger.info(f"Processing uploaded file: {file.filename}")
-        
-        # Parse the PDF
+        # Parse with VLM
         result = docling_service.parse_pdf(temp_path)
         
         if not result.get("success"):
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Parsing failed: {result.get('error', 'Unknown error')}"
-            )
+            raise HTTPException(status_code=500, detail=result.get("error"))
         
         return {
             "filename": file.filename,
-            "status": "success",
-            "document": result.get("document"),
-            "metadata": result.get("metadata")
+            "document": result.get("document")
         }
         
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error processing file {file.filename}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
-    
     finally:
-        # Clean up temporary file
-        if temp_file and Path(temp_path).exists():
-            try:
-                Path(temp_path).unlink()
-                logger.info(f"Cleaned up temporary file: {temp_path}")
-            except Exception as e:
-                logger.error(f"Failed to delete temporary file: {str(e)}")
+        # Cleanup
+        if temp_path and Path(temp_path).exists():
+            Path(temp_path).unlink()
 
 
 if __name__ == "__main__":

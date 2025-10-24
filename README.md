@@ -1,39 +1,31 @@
-# VLM Docling - PDF Parsing with GraniteDocling
+# Docling VLM - Basic PDF Parsing
 
-FastAPI application for parsing PDF documents using GraniteDocling VLM with CUDA acceleration on H200 GPU.
+Minimal FastAPI application for parsing PDF documents using Docling VLM pipeline with CUDA acceleration.
 
 ## Features
 
-- 🚀 FastAPI REST API for PDF parsing
-- 🔥 GraniteDocling VLM (IBM Granite 3.1 8B Instruct) for advanced PDF understanding
-- 🎯 CUDA 12.6.2 acceleration optimized for H200 GPU
-- 📄 JSON document structure output
-- 🐳 Docker containerization with GPU support
-- 📊 Swagger UI for easy testing
+- 🚀 Minimal FastAPI REST API for PDF parsing
+- 📄 Docling VLM pipeline for document understanding
+- 🎯 CUDA 12.6.2 acceleration for H200 GPU
+- 📊 JSON document structure output
+- 🐳 Docker with GPU support
+- 📖 Swagger UI at `/docs`
 
 ## Requirements
 
-### Hardware
-- NVIDIA H200 GPU (or compatible GPU)
-- Ubuntu with NVIDIA drivers installed
+- NVIDIA GPU (H200 or compatible)
+- Ubuntu with NVIDIA drivers
 - NVIDIA Container Toolkit
+- Docker & Docker Compose
 
-### Software
-- Docker with NVIDIA runtime support
-- Docker Compose
+## Quick Start
 
-## Installation
-
-1. **Verify NVIDIA Container Toolkit:**
 ```bash
-docker run --rm --gpus all nvidia/cuda:12.6.2-base-ubuntu22.04 nvidia-smi
-```
-
-2. **Clone and build:**
-```bash
-git clone <your-repo-url>
-cd vlm-docling
+# Build and run
 ./refresh.sh
+
+# Or manually
+docker compose up -d
 ```
 
 ## Usage
@@ -53,174 +45,52 @@ docker compose logs -f vlm-docling
 
 ### API Endpoints
 
-The service runs on `http://localhost:8879` and provides the following endpoints:
+Service runs on `http://localhost:8879`
 
-#### 1. Health Check
-```bash
-curl http://localhost:8879/health
-```
+**Swagger UI:** `http://localhost:8879/docs`
 
-#### 2. VLM Service Status
-```bash
-curl http://localhost:8879/api/parse-pdf/status
-```
+**Endpoints:**
+- `GET /` - Root
+- `GET /health` - Health check
+- `POST /api/parse-pdf` - Upload and parse PDF
 
-Returns GPU information and service readiness.
+### Usage
 
-#### 3. Parse PDF
-Upload a PDF file for parsing:
+**Via Swagger UI:**
+1. Open `http://localhost:8879/docs`
+2. Try `/api/parse-pdf` endpoint
+3. Upload PDF
+4. View parsed JSON
 
+**Via curl:**
 ```bash
 curl -X POST "http://localhost:8879/api/parse-pdf" \
-  -H "Content-Type: multipart/form-data" \
   -F "file=@document.pdf"
 ```
 
-Or use Swagger UI at: `http://localhost:8879/docs`
+## Project Structure
 
-### Using Swagger UI
+```
+main.py              # FastAPI app
+docling_service.py   # VLM parsing service
+Dockerfile           # CUDA 12.6.2 container
+docker-compose.yml   # GPU configuration
+requirements.txt     # Just docling[vlm] + FastAPI
+```
 
-1. Navigate to `http://localhost:8879/docs`
-2. Click on the `/api/parse-pdf` endpoint
-3. Click "Try it out"
-4. Upload a PDF file
-5. Click "Execute"
-6. View the parsed JSON document structure
+## Notes
 
-### Standalone Script
+- Models are cached in Docker volume `huggingface-cache`
+- First run downloads VLM models (may take time)
+- VLM processing is slower but more accurate than standard pipelines
 
-For testing outside Docker:
+## View Logs
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Parse a PDF
-python example_vlm_parse.py document.pdf output
-
-# Parse from URL
-python example_vlm_parse.py https://arxiv.org/pdf/2408.09869 output
+docker compose logs -f vlm-docling
 ```
-
-This will create `output.json` and `output.md` files.
-
-## API Response Format
-
-```json
-{
-  "filename": "document.pdf",
-  "status": "success",
-  "document": {
-    "pages": [...],
-    "content": [...],
-    "tables": [...],
-    "figures": [...]
-  },
-  "metadata": {
-    "source": "/tmp/uploaded.pdf",
-    "num_pages": 10,
-    "device": "cuda"
-  }
-}
-```
-
-## Architecture
-
-- **main.py** - FastAPI application with HTTP endpoints
-- **docling_service.py** - Core PDF parsing logic with VLM
-- **Dockerfile** - CUDA 12.6.2 enabled container
-- **docker-compose.yml** - GPU configuration and orchestration
-- **example_vlm_parse.py** - Standalone testing script
-
-## Configuration
-
-### GPU Settings
-
-Modify `docker-compose.yml` to adjust GPU settings:
-
-```yaml
-deploy:
-  resources:
-    reservations:
-      devices:
-        - driver: nvidia
-          count: 1  # Number of GPUs
-          capabilities: [gpu]
-```
-
-### Model Caching
-
-Models are cached in a Docker volume to avoid re-downloading:
-
-```yaml
-volumes:
-  - huggingface-cache:/app/.cache/huggingface
-```
-
-## Troubleshooting
-
-### GPU Not Detected
-
-```bash
-# Check NVIDIA drivers
-nvidia-smi
-
-# Check Docker GPU access
-docker run --rm --gpus all nvidia/cuda:12.6.2-base-ubuntu22.04 nvidia-smi
-
-# Install NVIDIA Container Toolkit if needed
-# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
-```
-
-### Service Not Starting
-
-```bash
-# View logs
-docker compose logs -f
-
-# Check service status
-curl http://localhost:8879/api/parse-pdf/status
-```
-
-### Out of Memory
-
-Reduce model size or increase GPU memory allocation.
-
-## Development
-
-### Refresh and Rebuild
-
-```bash
-# Full rebuild without cache
-./refresh.sh --no-cache
-
-# Without git pull
-./refresh.sh --no-pull
-
-# View logs in foreground
-./refresh.sh --foreground
-```
-
-### Push Changes
-
-```bash
-./gitpush.sh
-```
-
-## Technical Details
-
-- **Base Image**: nvidia/cuda:12.6.2-cudnn-runtime-ubuntu22.04
-- **Python**: 3.11
-- **Docling**: 2.58.0
-- **PyTorch**: 2.5.1 with CUDA 12.4 support
-- **VLM Model**: IBM Granite 3.1 8B Instruct
 
 ## References
 
 - [Docling Documentation](https://docling-project.github.io/docling/)
-- [GraniteDocling VLM Example](https://docling-project.github.io/docling/examples/minimal_vlm_pipeline/)
 - [Docling GitHub](https://github.com/docling-project/docling)
-
-## License
-
-MIT

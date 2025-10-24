@@ -1,12 +1,10 @@
 """
-Docling VLM Service - PDF parsing using GraniteDocling VLM
-Handles all document parsing logic with CUDA acceleration
+Docling VLM Service - Basic PDF parsing using Docling VLM pipeline
 """
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Union
-import torch
+from typing import Dict, Union
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
@@ -16,124 +14,57 @@ logger = logging.getLogger(__name__)
 
 
 class DoclingVLMService:
-    """
-    Singleton service for parsing PDFs using GraniteDocling VLM
-    Optimized for H200 GPU with CUDA 12.6.2
-    """
-    
-    _instance: Optional['DoclingVLMService'] = None
-    _initialized: bool = False
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DoclingVLMService, cls).__new__(cls)
-        return cls._instance
+    """Basic VLM service for parsing PDFs"""
     
     def __init__(self):
-        """Initialize the VLM service with GraniteDocling model"""
-        if not self._initialized:
-            logger.info("Initializing DoclingVLMService...")
-            self._setup_device()
-            self._initialize_converter()
-            self._initialized = True
-            logger.info("DoclingVLMService initialized successfully")
+        """Initialize the VLM service"""
+        logger.info("Initializing Docling VLM Service...")
+        self.converter = self._create_converter()
+        logger.info("Docling VLM Service ready")
     
-    def _setup_device(self):
-        """Setup CUDA device for GPU acceleration"""
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        if self.device == "cuda":
-            logger.info(f"CUDA available: {torch.cuda.is_available()}")
-            logger.info(f"CUDA device: {torch.cuda.get_device_name(0)}")
-            logger.info(f"CUDA version: {torch.version.cuda}")
-        else:
-            logger.warning("CUDA not available, using CPU")
-    
-    def _initialize_converter(self):
-        """Initialize DocumentConverter with explicit VLM pipeline"""
-        try:
-            logger.info("=" * 60)
-            logger.info("Requesting VlmPipeline initialization...")
-            logger.info("Model: IBM Granite 3.1 8B Instruct (default)")
-            logger.info("Backend: transformers")
-            logger.info("=" * 60)
-            
-            # Initialize DocumentConverter with explicit VLM pipeline class
-            # Uses GraniteDocling model by default with transformers framework
-            self.converter = DocumentConverter(
-                format_options={
-                    InputFormat.PDF: PdfFormatOption(
-                        pipeline_cls=VlmPipeline,
-                    ),
-                }
-            )
-            
-            logger.info("✓ DocumentConverter initialized with VlmPipeline")
-            logger.info("✓ GraniteDocling VLM ready for PDF parsing")
-            logger.info("=" * 60)
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize VLM converter: {str(e)}")
-            raise
+    def _create_converter(self) -> DocumentConverter:
+        """Create DocumentConverter with VLM pipeline"""
+        # Most basic VLM pipeline setup
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(
+                    pipeline_cls=VlmPipeline,
+                ),
+            }
+        )
+        logger.info("VlmPipeline initialized")
+        return converter
     
     def parse_pdf(self, file_path: Union[str, Path]) -> Dict:
         """
-        Parse a PDF file using GraniteDocling VLM
+        Parse a PDF file using VLM pipeline
         
         Args:
             file_path: Path to the PDF file
             
         Returns:
-            Dictionary containing the parsed document structure
-            
-        Raises:
-            Exception: If parsing fails
+            Dictionary with parsed document
         """
         try:
-            logger.info(f"Starting PDF parsing: {file_path}")
+            logger.info(f"Parsing PDF: {file_path}")
             
-            # Convert the document
+            # Convert document
             result = self.converter.convert(str(file_path))
             
-            # Export to JSON structure
+            # Export to dict
             doc_dict = result.document.export_to_dict()
             
-            logger.info(f"Successfully parsed PDF: {file_path}")
+            logger.info(f"Successfully parsed: {file_path}")
             
             return {
                 "success": True,
-                "document": doc_dict,
-                "metadata": {
-                    "source": str(file_path),
-                    "num_pages": len(doc_dict.get("pages", [])),
-                    "device": self.device,
-                    "pipeline": "VlmPipeline",
-                    "model": "granite-3.1-8b-instruct",
-                    "backend": "transformers"
-                }
+                "document": doc_dict
             }
             
         except Exception as e:
-            logger.error(f"Error parsing PDF {file_path}: {str(e)}")
+            logger.error(f"Parse error: {str(e)}")
             return {
                 "success": False,
-                "error": str(e),
-                "document": None
+                "error": str(e)
             }
-    
-    def is_ready(self) -> bool:
-        """Check if the service is ready to process documents"""
-        return self._initialized
-    
-    def get_status(self) -> Dict:
-        """Get service status information"""
-        return {
-            "initialized": self._initialized,
-            "device": self.device if hasattr(self, 'device') else "unknown",
-            "cuda_available": torch.cuda.is_available(),
-            "cuda_device_name": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
-            "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
-            "pipeline": "VlmPipeline",
-            "model": "granite-3.1-8b-instruct",
-            "backend": "transformers"
-        }
 
