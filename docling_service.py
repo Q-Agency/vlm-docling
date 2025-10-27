@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Union, Dict
+from typing import Union, Dict, List, Any, Optional
 
 import torch
 
@@ -11,6 +11,10 @@ from docling.pipeline.vlm_pipeline import VlmPipeline
 # VLM Pipeline imports
 from docling.datamodel.pipeline_options import VlmPipelineOptions, AcceleratorOptions
 from docling.datamodel import vlm_model_specs
+
+# Chunking imports
+from hybrid_chunker import chunk_document
+from tokenizer_manager import get_tokenizer_manager
 
 logger = logging.getLogger(__name__)
 
@@ -163,3 +167,49 @@ class DoclingVLMService:
         except Exception as e:
             logger.error(f"✗ Parse error: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
+
+    def chunk_document(
+        self,
+        document,
+        max_tokens: int = 512,
+        merge_peers: bool = True,
+        model_name: Optional[str] = None,
+        serialize_tables: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        Chunk a DoclingDocument into smaller pieces with metadata.
+        
+        Args:
+            document: DoclingDocument object (from parse result)
+            max_tokens: Maximum tokens per chunk (default: 512)
+            merge_peers: Whether to merge undersized successive chunks (default: True)
+            model_name: Optional HuggingFace model name for custom tokenizer
+            serialize_tables: Whether to serialize table chunks (default: False)
+            
+        Returns:
+            List of chunk dictionaries with text, section_title, chunk_index, and metadata
+        """
+        logger.info(f"Chunking document: max_tokens={max_tokens}, merge_peers={merge_peers}, model_name={model_name}")
+        
+        # Get tokenizer if model_name is provided
+        tokenizer = None
+        if model_name:
+            try:
+                tokenizer_manager = get_tokenizer_manager()
+                tokenizer = tokenizer_manager.get_tokenizer(model_name)
+                logger.info(f"Using custom tokenizer: {model_name}")
+            except Exception as e:
+                logger.warning(f"Failed to load tokenizer '{model_name}': {e}. Using default.")
+        
+        # Call the chunking function
+        chunks = chunk_document(
+            document=document,
+            max_tokens=max_tokens,
+            merge_peers=merge_peers,
+            tokenizer=tokenizer,
+            include_full_metadata=False,  # Use curated metadata only
+            serialize_tables=serialize_tables
+        )
+        
+        logger.info(f"✓ Document chunked into {len(chunks)} chunks")
+        return chunks
