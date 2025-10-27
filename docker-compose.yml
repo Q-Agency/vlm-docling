@@ -10,12 +10,11 @@ services:
       - "8879:8000"
     environment:
       - PYTHONUNBUFFERED=1
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=0,1
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - TRANSFORMERS_CACHE=/app/.cache/huggingface
       - DOCLING_PERF_PAGE_BATCH_SIZE=8
-      - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./main.py:/app/main.py
       - ./docling_service.py:/app/docling_service.py
