@@ -19,6 +19,9 @@ services:
     volumes:
       - ./main.py:/app/main.py
       - ./docling_service.py:/app/docling_service.py
+      - ./hybrid_chunker.py:/app/hybrid_chunker.py
+      - ./tokenizer_manager.py:/app/tokenizer_manager.py
+      - ./table_serializer.py:/app/table_serializer.py
       - huggingface-cache:/app/.cache/huggingface
     restart: unless-stopped
     deploy:

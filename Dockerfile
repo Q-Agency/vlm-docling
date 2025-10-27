@@ -30,6 +30,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY main.py .
 COPY docling_service.py .
+COPY hybrid_chunker.py .
+COPY tokenizer_manager.py .
+COPY table_serializer.py .
 
 # Expose port
 EXPOSE 8000

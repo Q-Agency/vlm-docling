@@ -6,3 +6,6 @@ python-multipart==0.0.12
 # Docling with VLM support (includes all VLM dependencies)
 docling[vlm]==2.58.0
 
+# Transformers for tokenizer management
+transformers>=4.40.0
+
