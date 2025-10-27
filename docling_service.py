@@ -33,9 +33,10 @@ class DoclingVLMService:
         # Select model based on platform - using vLLM for 2-4x faster inference
         model = vlm_model_specs.GRANITEDOCLING_VLLM.model_copy()
         
-        # Optimize vLLM for H200 GPU - increase memory utilization
+        # Optimize vLLM for H200 GPU
         model.extra_generation_config.update({
-            "gpu_memory_utilization": 0.1,  # Use 70% of H200 memory (vs default 30%)
+            "gpu_memory_utilization": 0.5,  # Use 50% of H200 memory (vs default 30%)
+            "enforce_eager": True,  # Skip torch.compile (avoids C compiler requirement)
         })
         
         # Configure GPU acceleration for H200
