@@ -35,7 +35,7 @@ class DoclingVLMService:
         
         # Optimize vLLM for H200 GPU
         model.extra_generation_config.update({
-            "gpu_memory_utilization": 0.5,  # Use 50% of H200 memory (vs default 30%)
+            "gpu_memory_utilization": 0.2,  # Use 50% of H200 memory (vs default 30%)
             "enforce_eager": True,  # Skip torch.compile (avoids C compiler requirement)
         })
         
