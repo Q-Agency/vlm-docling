@@ -35,7 +35,7 @@ class DoclingVLMService:
         
         # Optimize vLLM for H200 GPU (141GB HBM3e)
         model.extra_generation_config.update({
-            "gpu_memory_utilization": 0.7,  # Use 70% of H200's 141GB (vs default 30%)
+            "gpu_memory_utilization": 0.2,  # Use 70% of H200's 141GB (vs default 30%)
             "enforce_eager": True,  # Skip torch.compile (avoids C compiler requirement)
             "max_num_batched_tokens": 65536,  # Double batch size for better throughput
             "kv_cache_dtype": "auto",  # Optimize KV cache format
