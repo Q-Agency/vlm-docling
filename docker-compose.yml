@@ -15,6 +15,7 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - TRANSFORMERS_CACHE=/app/.cache/huggingface
       - DOCLING_PERF_PAGE_BATCH_SIZE=8
+      - DOCLING_NUM_THREADS=32
     volumes:
       - ./main.py:/app/main.py
       - ./docling_service.py:/app/docling_service.py

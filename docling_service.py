@@ -31,15 +31,15 @@ class DoclingVLMService:
         For Mac, change to vlm_model_specs.GRANITEDOCLING_MLX.
         """
         # Select model based on platform - using vLLM for 2-4x faster inference
-        model = vlm_model_specs.GRANITEDOCLING_VLLM.model_copy(deep=True)
+        model = vlm_model_specs.GRANITEDOCLING_VLLM.model_copy()
         
-        # Optimize vLLM for H200 GPU - create new dict to ensure updates are applied
-        model.extra_generation_config = {
-            **model.extra_generation_config,
-            "gpu_memory_utilization": 0.6,  # Use 60% of H200 memory
-            "tensor_parallel_size": 2,  # Use both H200 GPUs
+        # Optimize vLLM for H200 GPU (141GB HBM3e)
+        model.extra_generation_config.update({
+            "gpu_memory_utilization": 0.7,  # Use 70% of H200's 141GB (vs default 30%)
             "enforce_eager": True,  # Skip torch.compile (avoids C compiler requirement)
-        }
+            "max_num_batched_tokens": 65536,  # Double batch size for better throughput
+            "kv_cache_dtype": "auto",  # Optimize KV cache format
+        })
         
         # Configure GPU acceleration for H200
         accelerator_options = AcceleratorOptions(
@@ -58,7 +58,6 @@ class DoclingVLMService:
         logger.info(f"Model Scale: {model.scale}")
         logger.info(f"Max Tokens: {model.max_new_tokens}")
         logger.info(f"Temperature: {model.temperature}")
-        logger.info(f"Extra Generation Config: {model.extra_generation_config}")
         logger.info("=" * 60)
         
         # Create VLM pipeline options with minimal required parameters
