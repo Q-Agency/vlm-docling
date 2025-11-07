@@ -4,7 +4,7 @@ uvicorn[standard]==0.31.0
 python-multipart==0.0.12
 
 # Docling with VLM support (includes all VLM dependencies)
-docling[vlm]==2.58.0
+docling[vlm]==2.61.1
 
 # Transformers for tokenizer management
 transformers>=4.40.0
